@@ -1,0 +1,4 @@
+miniupnpc>=2.2.7
+pystray>=0.19.5
+Pillow>=10.0.0
+win10toast>=0.9
