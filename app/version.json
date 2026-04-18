@@ -1,0 +1,15 @@
+{
+  "version": "1.1.0",
+  "release_notes": "初回リリース",
+  "download_url": "https://github.com/meilol-hub/Upnp-port-manager/releases/latest/download/installer.exe",
+  "files": [
+    {
+      "name": "Upnp_manager.py",
+      "url": "https://raw.githubusercontent.com/meilol-hub/Upnp-port-manager/main/app/Upnp_manager.py"
+    },
+    {
+      "name": "requirements.txt",
+      "url": "https://raw.githubusercontent.com/meilol-hub/Upnp-port-manager/main/app/requirements.txt"
+    }
+  ]
+}
