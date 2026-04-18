@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 UPnP Port Manager  v2.1.0
-GitHub: https://github.com/YOUR_USERNAME/upnp-port-manager
+GitHub: https://github.com/meilol-hub/Upnp-port-manager
 """
 
 # ════════════════════════════════════════════════════════════════════
@@ -57,11 +57,11 @@ except ImportError:     HAS_PKG = False
 # ════════════════════════════════════════════════════════════════════
 #  App meta
 # ════════════════════════════════════════════════════════════════════
-APP_NAME    = "UPnP Port Manager"
-APP_VER     = "2.1.0"
+APP_NAME    = "Upnp port manager"
+APP_VER     = "1.1.0"
 APP_DESC    = "Universal Plug & Play  ·  Gateway Controller"
-GITHUB_RAW  = "https://raw.githubusercontent.com/YOUR_USERNAME/upnp-port-manager/main"
-VERSION_URL = f"{GITHUB_RAW}/version.json"
+GITHUB_RAW  = "https://raw.githubusercontent.com/meilol-hub/Upnp-port-manager/main"
+VERSION_URL = f"{GITHUB_RAW}/app/version.json"
 
 # ════════════════════════════════════════════════════════════════════
 #  Paths
@@ -120,16 +120,28 @@ class UPnPEngine:
         self.upnp = None; self.local_ip = "—"; self.extern_ip = "—"
         self._lock = threading.Lock()
 
-    def discover(self):
+    def discover(self, retries=3):
         if not HAS_UPNPC:
             return False, "miniupnpc がインストールされていません"
-        try:
-            u = miniupnpc.UPnP(); u.discoverdelay = 300
-            if u.discover() == 0: return False, "UPnP デバイスが見つかりません"
-            u.selectigd(); self.upnp = u
-            self.local_ip = u.lanaddr; self.extern_ip = u.externalipaddress()
-            return True, "OK"
-        except Exception as e: return False, str(e)
+        # 無線LAN はルーターの応答が遅いため delay を長めにして複数回試みる
+        delays = [1000, 2000, 3000]   # ms  (有線300ms, 無線は1〜3秒必要な場合あり)
+        last_err = "UPnP デバイスが見つかりません"
+        for i in range(retries):
+            try:
+                u = miniupnpc.UPnP()
+                u.discoverdelay = delays[min(i, len(delays)-1)]
+                found = u.discover()
+                if found == 0:
+                    last_err = "UPnP デバイスが見つかりません"
+                    continue
+                u.selectigd()
+                self.upnp      = u
+                self.local_ip  = u.lanaddr
+                self.extern_ip = u.externalipaddress()
+                return True, "OK"
+            except Exception as e:
+                last_err = str(e)
+        return False, f"{last_err}（{retries}回試行）"
 
     def add(self, port, proto, desc=APP_NAME):
         if not self.upnp:
